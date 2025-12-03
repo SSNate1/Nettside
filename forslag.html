@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Forslag</title>
 <style>
   body {
@@ -36,14 +36,8 @@
     border-radius: 6px;
     margin-left: 5px;
   }
-  button:hover {
-    background: #6fb8ff;
-  }
-  ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
-  }
+  button:hover { background: #6fb8ff; }
+  ul { list-style: none; padding: 0; margin-top: 20px; }
   li {
     background: #6ba8ff;
     margin: 10px 0;
@@ -56,12 +50,11 @@
     align-items: center;
   }
   .vote-btn {
-    background: #ffd700;
-    color: black;
     font-weight: bold;
     margin-left: 5px;
     border-radius: 4px;
     padding: 4px 8px;
+    cursor: pointer;
   }
   .slettBtn {
     background: #ff4d4d;
@@ -92,7 +85,6 @@
 <button id="adminBtn">⚙</button>
 
 <h1>Legg inn forslag</h1>
-
 <textarea id="forslagInput" rows="4" placeholder="Skriv inn ditt forslag her..."></textarea>
 <br>
 <button id="leggTilBtn">Legg til forslag</button>
@@ -100,122 +92,147 @@
 <h2>Tidligere forslag:</h2>
 <ul id="forslagListe"></ul>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
-const input = document.getElementById('forslagInput');
-const leggTilBtn = document.getElementById('leggTilBtn');
-const liste = document.getElementById('forslagListe');
-const adminBtn = document.getElementById('adminBtn');
+  // Din Firebase-konfig
+const firebaseConfig = {
+  apiKey: "AIzaSyDyNeYw-Im9hggV3Hjbvk58mO0H32QLe7c",
+  authDomain: "nettside-8e0fa.firebaseapp.com",
+  databaseURL: "https://nettside-8e0fa-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "nettside-8e0fa",
+  storageBucket: "nettside-8e0fa.firebasestorage.app",
+  messagingSenderId: "310663512384",
+  appId: "1:310663512384:web:35df850965b84561a33aa5",
+  measurementId: "G-04596EYKV1"
+};
 
-let forslag = JSON.parse(localStorage.getItem('forslag')) || [];
-let stemmer = JSON.parse(localStorage.getItem('stemmer')) || {}; // { forslagIndex: "upvote"/"downvote"/null }
-let adminMode = false;
+  // Initialiser Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-function visForslag() {
-  liste.innerHTML = '';
-  forslag.forEach((f, i) => {
-    const li = document.createElement('li');
-    const tekst = document.createElement('span');
-    tekst.textContent = f.tekst;
-    li.appendChild(tekst);
+  const input = document.getElementById('forslagInput');
+  const leggTilBtn = document.getElementById('leggTilBtn');
+  const liste = document.getElementById('forslagListe');
+  const adminBtn = document.getElementById('adminBtn');
+  let adminMode = false;
 
-    const stemDiv = document.createElement('div');
+  // Funksjon for å vise forslag
+  function visForslag() {
+    db.ref('forslag').once('value').then(snapshot => {
+      const data = snapshot.val() || {};
+      liste.innerHTML = '';
 
-    const upvote = document.createElement('button');
-    upvote.textContent = `⬆ ${f.upvote || 0}`;
-    upvote.classList.add('vote-btn');
+      Object.entries(data).forEach(([id, f]) => {
+        const li = document.createElement('li');
+        const tekstSpan = document.createElement('span');
+        tekstSpan.textContent = f.tekst;
+        li.appendChild(tekstSpan);
 
-    const downvote = document.createElement('button');
-    downvote.textContent = `⬇ ${f.downvote || 0}`;
-    downvote.classList.add('vote-btn');
+        const stemDiv = document.createElement('div');
 
-    // Sjekk om stemme finnes, ellers standard farge
-    const stemme = stemmer[i] || null;
-    upvote.style.background = stemme === 'upvote' ? '#1cfc03' : '#ffd700';
-    downvote.style.background = stemme === 'downvote' ? 'red' : '#ffd700';
+        const upvote = document.createElement('button');
+        upvote.textContent = `⬆ ${f.upvote || 0}`;
+        upvote.classList.add('vote-btn');
 
+        const downvote = document.createElement('button');
+        downvote.textContent = `⬇ ${f.downvote || 0}`;
+        downvote.classList.add('vote-btn');
 
-    // Upvote-logikk
-    upvote.addEventListener('click', () => {
-      if (stemmer[i] === 'upvote') {
-        f.upvote--;
-        stemmer[i] = null;
-      } else {
-        if (stemmer[i] === 'downvote') f.downvote--;
-        f.upvote = (f.upvote || 0) + 1;
-        stemmer[i] = 'upvote';
+        // Hent stemmer fra localStorage
+        let stemmer = JSON.parse(localStorage.getItem('stemmer')) || {};
+        const aktuellStemme = stemmer[id] || null;
+
+        upvote.style.background = aktuellStemme === 'upvote' ? 'green' : '#ffd700';
+        downvote.style.background = aktuellStemme === 'downvote' ? 'red' : '#ffd700';
+
+        // Upvote
+        upvote.addEventListener('click', () => {
+          let stemmer = JSON.parse(localStorage.getItem('stemmer')) || {};
+          const aktuell = stemmer[id] || null;
+
+          if (aktuell === 'upvote') {
+            db.ref(`forslag/${id}/upvote`).transaction(v => v - 1);
+            stemmer[id] = null;
+          } else {
+            if (aktuell === 'downvote') db.ref(`forslag/${id}/downvote`).transaction(v => v - 1);
+            db.ref(`forslag/${id}/upvote`).transaction(v => (v || 0) + 1);
+            stemmer[id] = 'upvote';
+          }
+
+          localStorage.setItem('stemmer', JSON.stringify(stemmer));
+          visForslag(); // Oppdater farger og teller
+        });
+
+        // Downvote
+        downvote.addEventListener('click', () => {
+          let stemmer = JSON.parse(localStorage.getItem('stemmer')) || {};
+          const aktuell = stemmer[id] || null;
+
+          if (aktuell === 'downvote') {
+            db.ref(`forslag/${id}/downvote`).transaction(v => v - 1);
+            stemmer[id] = null;
+          } else {
+            if (aktuell === 'upvote') db.ref(`forslag/${id}/upvote`).transaction(v => v - 1);
+            db.ref(`forslag/${id}/downvote`).transaction(v => (v || 0) + 1);
+            stemmer[id] = 'downvote';
+          }
+
+          localStorage.setItem('stemmer', JSON.stringify(stemmer));
+          visForslag();
+        });
+
+        stemDiv.appendChild(upvote);
+        stemDiv.appendChild(downvote);
+
+        // Slett-knapp
+        const slettBtn = document.createElement('button');
+        slettBtn.textContent = 'Slett';
+        slettBtn.classList.add('slettBtn');
+        slettBtn.style.display = adminMode ? 'inline-block' : 'none';
+        slettBtn.addEventListener('click', () => {
+          db.ref(`forslag/${id}`).remove();
+        });
+
+        li.appendChild(stemDiv);
+        li.appendChild(slettBtn);
+        liste.appendChild(li);
+      });
+    });
+  }
+
+  visForslag(); // Vis forslag ved lasting
+
+  // Legg til forslag
+  leggTilBtn.addEventListener('click', () => {
+    const tekst = input.value.trim();
+    if (!tekst) return;
+
+    db.ref('forslag').once('value').then(snapshot => {
+      const eksisterende = snapshot.val() || {};
+      if (Object.keys(eksisterende).length >= 10) {
+        alert("Det er allerede 10 forslag. Du kan ikke legge til flere.");
+        return;
       }
-      localStorage.setItem('forslag', JSON.stringify(forslag));
-      localStorage.setItem('stemmer', JSON.stringify(stemmer));
+      db.ref('forslag').push({ tekst: tekst, upvote: 0, downvote: 0 });
+      input.value = '';
       visForslag();
     });
-
-    // Downvote-logikk
-    downvote.addEventListener('click', () => {
-      if (stemmer[i] === 'downvote') {
-        f.downvote--;
-        stemmer[i] = null;
-      } else {
-        if (stemmer[i] === 'upvote') f.upvote--;
-        f.downvote = (f.downvote || 0) + 1;
-        stemmer[i] = 'downvote';
-      }
-      localStorage.setItem('forslag', JSON.stringify(forslag));
-      localStorage.setItem('stemmer', JSON.stringify(stemmer));
-      visForslag();
-    });
-
-    stemDiv.appendChild(upvote);
-    stemDiv.appendChild(downvote);
-    li.appendChild(stemDiv);
-
-    // Slett-knapp
-    const slettBtn = document.createElement('button');
-    slettBtn.textContent = 'Slett';
-    slettBtn.classList.add('slettBtn');
-    slettBtn.style.display = adminMode ? 'inline-block' : 'none';
-    slettBtn.addEventListener('click', () => {
-      forslag.splice(i, 1);
-      localStorage.setItem('forslag', JSON.stringify(forslag));
-      delete stemmer[i];
-      localStorage.setItem('stemmer', JSON.stringify(stemmer));
-      visForslag();
-    });
-    li.appendChild(slettBtn);
-
-    liste.appendChild(li);
   });
-}
 
-// Legg til forslag med maks 10 forslag
-leggTilBtn.addEventListener('click', () => {
-  const tekst = input.value.trim();
-
-  if (forslag.length >= 10) {
-    alert("Det er allerede 10 forslag. Du kan ikke legge til flere.");
-    return;
-  }
-
-  if (tekst) {
-    forslag.push({ tekst: tekst, upvote: 0, downvote: 0 });
-    localStorage.setItem('forslag', JSON.stringify(forslag));
-    input.value = '';
-    visForslag();
-  }
-});
-
-// Admin-knapp
-adminBtn.addEventListener('click', () => {
-  const passord = prompt("Skriv inn admin-passord:");
-  if (passord === "###") { // Bytt med ditt passord
-    adminMode = !adminMode;
-    visForslag();
-    alert("Admin-modus aktivert! Du kan nå slette forslag.");
-  } else {
-    alert("Feil passord!");
-  }
-});
-
-visForslag();
+  // Admin-knapp
+  adminBtn.addEventListener('click', () => {
+    const passord = prompt("Skriv inn admin-passord:");
+    if (passord === "###") { // Bytt med ditt passord
+      adminMode = !adminMode;
+      alert("Admin-modus aktivert! Du kan nå slette forslag.");
+      visForslag();
+    } else {
+      alert("Feil passord!");
+    }
+  });
 </script>
 
 </body>
