@@ -39,10 +39,12 @@ header {
 .hero {
     position: relative;
     height: 60vh;
+    background: linear-gradient(180deg, #5381d1, #a5c1e4);
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 
 .hero-content {
     text-align: center;
@@ -87,7 +89,6 @@ header {
 .btn:hover {
     background: #6fb8ff;
 }
-
 
 
 /* CONTENT SECTIONS */
