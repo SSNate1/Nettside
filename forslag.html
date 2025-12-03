@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8" />
+<title>Forslag</title>
+<style>
+  body {
+    font-family: 'Minecraft', sans-serif;
+    background: #b8d8ff;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    position: relative;
+  }
+  h1 {
+    text-align: center;
+    color: #1c3a6b;
+    text-shadow: 2px 2px #000;
+  }
+  textarea {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 8px;
+    margin: 8px 0;
+    border: 2px solid #1c3a6b;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  button {
+    background: #4aa3ff;
+    border: none;
+    padding: 8px 16px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-left: 5px;
+  }
+  button:hover {
+    background: #6fb8ff;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+  }
+  li {
+    background: #6ba8ff;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 2px 2px #000;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .vote-btn {
+    background: #ffd700;
+    color: black;
+    font-weight: bold;
+    margin-left: 5px;
+    border-radius: 4px;
+    padding: 4px 8px;
+  }
+  .slettBtn {
+    background: #ff4d4d;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: none;
+    margin-left: 5px;
+  }
+  #adminBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #4aa3ff;
+    border: none;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: white;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+
+<button id="adminBtn">⚙</button>
+
+<h1>Legg inn forslag</h1>
+
+<textarea id="forslagInput" rows="4" placeholder="Skriv inn ditt forslag her..."></textarea>
+<br>
+<button id="leggTilBtn">Legg til forslag</button>
+
+<h2>Tidligere forslag:</h2>
+<ul id="forslagListe"></ul>
+
+<script>
+const input = document.getElementById('forslagInput');
+const leggTilBtn = document.getElementById('leggTilBtn');
+const liste = document.getElementById('forslagListe');
+const adminBtn = document.getElementById('adminBtn');
+
+let forslag = JSON.parse(localStorage.getItem('forslag')) || [];
+let stemmer = JSON.parse(localStorage.getItem('stemmer')) || {}; // { forslagIndex: "upvote"/"downvote"/null }
+let adminMode = false;
+
+function visForslag() {
+  liste.innerHTML = '';
+  forslag.forEach((f, i) => {
+    const li = document.createElement('li');
+    const tekst = document.createElement('span');
+    tekst.textContent = f.tekst;
+    li.appendChild(tekst);
+
+    const stemDiv = document.createElement('div');
+
+    const upvote = document.createElement('button');
+    upvote.textContent = `⬆ ${f.upvote || 0}`;
+    upvote.classList.add('vote-btn');
+
+    const downvote = document.createElement('button');
+    downvote.textContent = `⬇ ${f.downvote || 0}`;
+    downvote.classList.add('vote-btn');
+
+    // Sjekk om stemme finnes, ellers standard farge
+    const stemme = stemmer[i] || null;
+    upvote.style.background = stemme === 'upvote' ? '#1cfc03' : '#ffd700';
+    downvote.style.background = stemme === 'downvote' ? 'red' : '#ffd700';
+
+
+    // Upvote-logikk
+    upvote.addEventListener('click', () => {
+      if (stemmer[i] === 'upvote') {
+        f.upvote--;
+        stemmer[i] = null;
+      } else {
+        if (stemmer[i] === 'downvote') f.downvote--;
+        f.upvote = (f.upvote || 0) + 1;
+        stemmer[i] = 'upvote';
+      }
+      localStorage.setItem('forslag', JSON.stringify(forslag));
+      localStorage.setItem('stemmer', JSON.stringify(stemmer));
+      visForslag();
+    });
+
+    // Downvote-logikk
+    downvote.addEventListener('click', () => {
+      if (stemmer[i] === 'downvote') {
+        f.downvote--;
+        stemmer[i] = null;
+      } else {
+        if (stemmer[i] === 'upvote') f.upvote--;
+        f.downvote = (f.downvote || 0) + 1;
+        stemmer[i] = 'downvote';
+      }
+      localStorage.setItem('forslag', JSON.stringify(forslag));
+      localStorage.setItem('stemmer', JSON.stringify(stemmer));
+      visForslag();
+    });
+
+    stemDiv.appendChild(upvote);
+    stemDiv.appendChild(downvote);
+    li.appendChild(stemDiv);
+
+    // Slett-knapp
+    const slettBtn = document.createElement('button');
+    slettBtn.textContent = 'Slett';
+    slettBtn.classList.add('slettBtn');
+    slettBtn.style.display = adminMode ? 'inline-block' : 'none';
+    slettBtn.addEventListener('click', () => {
+      forslag.splice(i, 1);
+      localStorage.setItem('forslag', JSON.stringify(forslag));
+      delete stemmer[i];
+      localStorage.setItem('stemmer', JSON.stringify(stemmer));
+      visForslag();
+    });
+    li.appendChild(slettBtn);
+
+    liste.appendChild(li);
+  });
+}
+
+// Legg til forslag med maks 10 forslag
+leggTilBtn.addEventListener('click', () => {
+  const tekst = input.value.trim();
+
+  if (forslag.length >= 10) {
+    alert("Det er allerede 10 forslag. Du kan ikke legge til flere.");
+    return;
+  }
+
+  if (tekst) {
+    forslag.push({ tekst: tekst, upvote: 0, downvote: 0 });
+    localStorage.setItem('forslag', JSON.stringify(forslag));
+    input.value = '';
+    visForslag();
+  }
+});
+
+// Admin-knapp
+adminBtn.addEventListener('click', () => {
+  const passord = prompt("Skriv inn admin-passord:");
+  if (passord === "###") { // Bytt med ditt passord
+    adminMode = !adminMode;
+    visForslag();
+    alert("Admin-modus aktivert! Du kan nå slette forslag.");
+  } else {
+    alert("Feil passord!");
+  }
+});
+
+visForslag();
+</script>
+
+</body>
+</html>
