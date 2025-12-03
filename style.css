@@ -1,0 +1,223 @@
+/* BASIC */
+body {
+    margin: 0;
+    background: #b8d8ff;
+    font-family: 'Minecraft', sans-serif;
+    color: #fff;
+    text-shadow:
+        1px 1px 1px #0008;
+}
+
+h1, h2, h3, p {
+    margin: 0;
+    /* Minecraft-pixel outline */
+    text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000;
+}
+
+/* HEADER */
+header {
+    background: #2e5fa7;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 6px solid #1c3a6b;
+}
+
+.title {
+    font-size: 40px;
+    text-shadow:
+        -3px -3px 0 #000,
+         3px -3px 0 #000,
+        -3px  3px 0 #000,
+         3px  3px 0 #000;
+}
+
+/* HERO SECTION */
+.hero {
+    position: relative;
+    height: 60vh;
+    background: url("https://i.imgur.com/4nF1K36.jpeg") center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-content {
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: 45px;
+    text-shadow:
+        -3px -3px 0 #000,
+         3px -3px 0 #000,
+        -3px  3px 0 #000,
+         3px  3px 0 #000;
+}
+
+.hero p {
+    font-size: 20px;
+    margin-top: 15px; /* litt avstand fra overskrift */
+    text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000;
+}
+
+.btn {
+    display: inline-block;
+    background: #4aa3ff;
+    padding: 12px 30px;
+    margin-top: 10px;
+    border: 4px solid #1f3d7a;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 20px;
+    text-decoration: none;
+    text-shadow:
+        -1px -1px 0 #000,
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+}
+
+.btn:hover {
+    background: #6fb8ff;
+}
+
+.snow, .snow2, .snow3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("https://i.imgur.com/KQ1dJpE.png");
+    background-repeat: repeat;
+    background-position: 0 0;
+    pointer-events: none;
+    animation: snow 15s linear infinite;
+}
+
+.snow2 {
+    animation-duration: 22s;
+    opacity: 0.6;
+}
+
+.snow3 {
+    animation-duration: 32s;
+    opacity: 0.3;
+}
+
+@keyframes snow { 
+    from { background-position: 0 0; }
+    to { background-position: 0 1000px; }
+}
+
+/* CONTENT SECTIONS */
+.content {
+    padding: 40px 20px;
+    text-align: center;
+    background: #4d7fc4;
+    border-top: 6px solid #274b89;
+    border-bottom: 6px solid #274b89;
+    text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000;
+}
+
+/* Løft Server Info opp */
+#serverinfo {
+    margin-top: -10px; /* trekker teksten opp */
+    padding-bottom: 40px; /* øker avstanden under seksjonen */
+}
+
+/* bli med opp */
+#blimed {
+    margin-top: -10px; /* trekker teksten opp */
+    padding-bottom: 40px; /* øker avstanden under seksjonen */
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background: #6ba8ff;
+    border: 4px solid #1f3d7a;
+    padding: 20px;
+    width: 220px;
+    border-radius: 8px;
+    box-shadow: 4px 4px #000;
+    text-shadow:
+        -1.5px -1.5px 0 #000,
+         1.5px -1.5px 0 #000,
+        -1.5px  1.5px 0 #000,
+         1.5px  1.5px 0 #000;
+}
+
+/* RULES */
+.rules {
+    list-style: none;
+    padding: 0;
+    font-size: 22px;
+    text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000;
+}
+
+/* JOIN SECTION */
+.join-section {
+    background: #3d6ba1;
+}
+
+.ip-box {
+    background: #6ba8ff;
+    border: 4px solid #1f3d7a;
+    padding: 10px 20px;
+    display: inline-flex;
+    gap: 15px;
+    align-items: center;
+    border-radius: 6px;
+    box-shadow: 4px 4px #000;
+}
+
+.ip-box button {
+    background: #4aa3ff;
+    border: 3px solid #173564;
+    padding: 8px 18px;
+    font-size: 18px;
+    color: white;
+    cursor: pointer;
+    text-shadow:
+        -1px -1px 0 #000,
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+}
+
+.ip-box button:hover {
+    background: #6fb8ff;
+}
+
+/* FOOTER */
+footer {
+    background: #244774;
+    padding: 20px;
+    text-align: center;
+    text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000;
+}
