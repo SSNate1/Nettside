@@ -39,7 +39,6 @@ header {
 .hero {
     position: relative;
     height: 60vh;
-    background: url("https://i.imgur.com/4nF1K36.jpeg") center/cover;
     display: flex;
     justify-content: center;
     align-items: center;
